@@ -10,7 +10,7 @@
   <a href="https://github.com/onury/nestjs-apikey-auth/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat" alt="license" /></a>
 </p>
 
-**Passport-free** API-key authentication for [NestJS](https://nestjs.com): opaque, **hashed-at-rest** keys with scopes, optional expiry, and **instant revocation**, behind a default-deny guard — for machine, service, and third-party callers. Wired with a single `forRoot()`.
+API-key authentication for [NestJS](https://nestjs.com): opaque, **hashed-at-rest** keys with scopes, optional expiry, and **instant revocation**, behind a default-deny guard — for machine, service, and third-party callers. Wired with a single `forRoot()`.
 
 > **ESM-only.** Requires Node ≥ 20 and NestJS 10 / 11.
 >

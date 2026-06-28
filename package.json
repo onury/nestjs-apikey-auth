@@ -1,7 +1,7 @@
 {
   "name": "nestjs-apikey-auth",
   "version": "1.0.0",
-  "description": "Passport-free API-key authentication for NestJS — opaque hashed-at-rest keys, scopes, expiry, instant revocation, and a default-deny guard for machine & third-party callers.",
+  "description": "API-key authentication for NestJS — opaque hashed-at-rest keys, scopes, expiry, instant revocation, and a default-deny guard for machine & third-party callers.",
   "type": "module",
   "license": "MIT",
   "author": "Onur Yıldırım",
