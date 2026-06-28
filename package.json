@@ -1,0 +1,80 @@
+{
+  "name": "nestjs-apikey-auth",
+  "version": "1.0.0",
+  "description": "Passport-free API-key authentication for NestJS — opaque hashed-at-rest keys, scopes, expiry, instant revocation, and a default-deny guard for machine & third-party callers.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Onur Yıldırım",
+  "homepage": "https://github.com/onury/nestjs-apikey-auth#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/onury/nestjs-apikey-auth.git"
+  },
+  "bugs": {
+    "url": "https://github.com/onury/nestjs-apikey-auth/issues"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:mutation": "stryker run",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "nestjs",
+    "nest",
+    "api-key",
+    "apikey",
+    "authentication",
+    "auth",
+    "guard",
+    "scopes",
+    "machine-to-machine",
+    "m2m",
+    "bearer",
+    "opaque-token"
+  ],
+  "peerDependencies": {
+    "@nestjs/common": "^10 || ^11",
+    "@nestjs/core": "^10 || ^11",
+    "reflect-metadata": "^0.2"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.1",
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@stryker-mutator/core": "^9.6.1",
+    "@stryker-mutator/vitest-runner": "^9.6.1",
+    "@types/node": "^24.0.0",
+    "@vitest/coverage-istanbul": "^4.1.9",
+    "biome-config-oy": "^1.1.0",
+    "reflect-metadata": "^0.2.2",
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.9"
+  }
+}
