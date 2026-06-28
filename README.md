@@ -12,7 +12,7 @@
 
 API-key authentication for [NestJS](https://nestjs.com): opaque, **hashed-at-rest** keys with scopes, optional expiry, and **instant revocation**, behind a default-deny guard — for machine, service, and third-party callers. Wired with a single `forRoot()`.
 
-> **ESM-only.** Requires Node ≥ 20 and NestJS 10 / 11.
+> **[ESM](https://gist.github.com/onury/d3f3d765d7db2e8b2d050d14315f2ac7)-only.** Requires Node ≥ 20 and NestJS 10 / 11.
 >
 > This is the **machine / third-party** half. For human user sessions use the siblings: stateless JWTs (`nestjs-jwt-guard`) or opaque login tokens (`nestjs-oauth2-password`). They compose — run an API-key guard and a user-session guard side by side.
 
