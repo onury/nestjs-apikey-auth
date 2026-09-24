@@ -15,7 +15,7 @@ API-key authentication for [NestJS](https://nestjs.com): opaque, **hashed-at-res
 
 > 🔆 **[ESM](https://gist.github.com/onury/d3f3d765d7db2e8b2d050d14315f2ac7)-only.** Requires Node ≥ 20 and NestJS 10 / 11 / 12.
 >
-> This is the **machine / third-party** half. For human user sessions use the siblings: stateless JWTs (`nestjs-jwt-guard`) or opaque login tokens (`nestjs-oauth2-password`). They compose — run an API-key guard and a user-session guard side by side.
+> This is the **machine / third-party** half. For human user sessions use the siblings: stateless JWTs (`nestjs-jwt-guard`) or opaque login tokens (`nestjs-oauth2-password`). They compose, but not at their defaults; keep one guard global and bind the other per controller. See [Alongside nestjs-jwt-guard](#alongside-nestjs-jwt-guard).
 
 ## Why
 
@@ -170,6 +170,77 @@ Disable the global guard (`registerGuard: false`) and apply per-controller — t
 export class PartnerController {}
 ```
 
+## Alongside nestjs-jwt-guard
+
+Both packages register their guard globally by default, and both read the `Authorization` header: this one expects `ApiKey <key>`, [`nestjs-jwt-guard`](https://github.com/onury/nestjs-jwt-guard) expects `Bearer <jwt>`. Nest runs every global guard and all of them must pass. A request carries one `Authorization` header, so with both modules at their defaults **no request gets through**.
+
+Keep one guard global and bind the other per controller. If most of your API serves users; JWT is the global one and keys guard the machine routes:
+
+```ts
+import { Controller, Module, UseGuards } from '@nestjs/common';
+import { JwtAuthModule, Public } from 'nestjs-jwt-guard';
+import { ApiKeyGuard, ApiKeyModule } from 'nestjs-apikey-auth';
+
+@Module({
+  imports: [
+    JwtAuthModule.forRoot({ jwt: { secret: process.env.JWT_SECRET } }), // global: every route needs a Bearer JWT
+    ApiKeyModule.forRootAsync({
+      inject: [ApiKeyStoreService],
+      useFactory: (store: ApiKeyStoreService) => ({ store }),
+      registerGuard: false,                                             // not global; bound per controller
+    }),
+  ],
+})
+export class AppModule {}
+
+@Public()                  // nestjs-jwt-guard's @Public(): passes the global JWT guard
+@UseGuards(ApiKeyGuard)    // this one demands the key
+@Controller('machine')
+export class MachineController {}
+```
+
+The machine controller needs **both** decorators. Without the JWT `@Public()`, the global JWT guard rejects the request with `401` before `ApiKeyGuard` ever sees the key. In `forRootAsync`, `registerGuard` goes next to `useFactory`, not inside the object it returns; the factory only supplies the store.
+
+If keys are the default (a machine-first API with a few user routes), mirror it: keep this guard global, pass `registerGuard: false` to `JwtAuthModule`, and mark the user controllers with this package's `@Public()`:
+
+```ts
+import { Controller, Module, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard, JwtAuthModule } from 'nestjs-jwt-guard';
+import { ApiKeyModule, Public } from 'nestjs-apikey-auth';
+
+@Module({
+  imports: [
+    ApiKeyModule.forRootAsync({ /* … */ }),                     // global, as in Quick start
+    JwtAuthModule.forRoot({
+      jwt: { secret: process.env.JWT_SECRET },
+      registerGuard: false,                                       // not global; bound per controller
+    }),
+  ],
+})
+export class AppModule {}
+
+@Public()                  // nestjs-apikey-auth's @Public(): passes the global key guard
+@UseGuards(JwtAuthGuard)   // this one demands the JWT
+@Controller('me')
+export class MeController {}
+```
+
+**Two `@Public()` decorators.** Each package exports its own `@Public()` with its own metadata key, and each guard reads only its own. A route marked with one is still guarded by the other. Import the one that belongs to your global guard, and alias them when a file needs both. In the setups above an open route (login, health) only needs the global guard's `@Public()`; if both guards are global, it needs both. Marking both is harmless, and keeps the route open whichever guard ends up global:
+
+```ts
+import { Public as JwtPublic } from 'nestjs-jwt-guard';
+import { Public as KeyPublic } from 'nestjs-apikey-auth';
+
+@JwtPublic()
+@KeyPublic()
+@Get('health')
+health() { return { ok: true }; }
+```
+
+**`req.user`.** `ApiKeyGuard` always attaches the key record at `req.apiKey` (`attachTo`), and writes `req.user` only when you configure `resolvePrincipal`. `JwtAuthGuard` writes the verified payload to `req.user`. In the setups above no route runs both guards, so they never collide. If you do stack both on one route, Nest runs global guards first, then controller guards, then method guards; the one that runs last owns `req.user`. For example, with JWT global and `@UseGuards(ApiKeyGuard)` on the route, `req.user` ends up as the key's principal. Stacking also means the key has to come from another header (`header: 'X-Api-Key', scheme: ''`), since a request has one `Authorization` header. Set the JWT guard's `attachTo` to something else if you need both principals.
+
+_Note: guards in Nest are AND-ed. Neither package lets a route accept "a JWT or a key"; for that, write a small guard of your own that tries one and falls back to the other._
+
 ## API
 
 **Module & enforcement**
@@ -197,7 +268,7 @@ export class PartnerController {}
 
 ## Related Projects
 
-- [**nestjs-jwt-guard**](https://github.com/onury/nestjs-jwt-guard) — Stateless bearer-JWT auth for user sessions.
+- [**nestjs-jwt-guard**](https://github.com/onury/nestjs-jwt-guard) — Stateless bearer-JWT auth for user sessions. To run both, see [Alongside nestjs-jwt-guard](#alongside-nestjs-jwt-guard).
 - [**nestjs-oauth2-password**](https://github.com/onury/nestjs-oauth2-password) — OAuth2 ROPC: opaque, revocable login tokens for first-party users.
 - [**nestjs-credentials**](https://github.com/onury/nestjs-credentials) — Token-agnostic username/password verification.
 - [**nestjs-accesscontrol**](https://github.com/onury/nestjs-accesscontrol) — RBAC + ABAC authorization (AccessControl v3); composes with key scopes.
