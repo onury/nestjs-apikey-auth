@@ -9,7 +9,7 @@ reports/
 .vscode/
 _backup/
 
-# ---- Author's working notes: planning, specs, working agreements ----
+# ---- Working notes ----
 _notes/
 
 # The latest test reports (coverage, mutation)
